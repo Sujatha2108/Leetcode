@@ -1,0 +1,34 @@
+from typing import List
+
+class Solution:
+    def maxTotalFruits(self, fruits: List[List[int]], startPos: int, k: int) -> int:
+        n = len(fruits)
+        left = 0
+        totalFruits = 0
+        maxFruits = 0
+
+        for right in range(n):
+            totalFruits += fruits[right][1]
+            
+            # Try to shrink window from left if not reachable
+            while left <= right and not self.canReach(fruits, left, right, startPos, k):
+                totalFruits -= fruits[left][1]
+                left += 1
+            
+            # Update the max fruits collected
+            maxFruits = max(maxFruits, totalFruits)
+        
+        return maxFruits
+    
+    def canReach(self, fruits, left, right, startPos, k):
+        leftPos = fruits[left][0]
+        rightPos = fruits[right][0]
+        
+        # Two strategies:
+        # 1. Go left first, then to right
+        leftFirst = abs(startPos - leftPos) + (rightPos - leftPos)
+        
+        # 2. Go right first, then to left
+        rightFirst = abs(startPos - rightPos) + (rightPos - leftPos)
+        
+        return min(leftFirst, rightFirst) <= k
