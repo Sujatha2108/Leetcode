@@ -1,0 +1,4 @@
+class Solution:
+    def isPowerOfTwo(self, n: int) -> bool:
+        # Check: n > 0 and n has only one '1' bit
+        return n > 0 and (n & (n - 1)) == 0
