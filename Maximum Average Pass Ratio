@@ -1,0 +1,27 @@
+import heapq
+from typing import List
+
+class Solution:
+    def maxAverageRatio(self, classes: List[List[int]], extraStudents: int) -> float:
+        # Function to compute the gain of adding one student
+        def gain(p, t):
+            return (p + 1) / (t + 1) - p / t
+        
+        # Build a max heap with (-gain, p, t)
+        heap = []
+        for p, t in classes:
+            heapq.heappush(heap, (-gain(p, t), p, t))
+        
+        # Assign extra students
+        for _ in range(extraStudents):
+            g, p, t = heapq.heappop(heap)
+            p, t = p + 1, t + 1
+            heapq.heappush(heap, (-gain(p, t), p, t))
+        
+        # Compute final average ratio
+        total_ratio = 0
+        while heap:
+            _, p, t = heapq.heappop(heap)
+            total_ratio += p / t
+        
+        return total_ratio / len(classes)
