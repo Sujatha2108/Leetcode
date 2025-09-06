@@ -1,0 +1,30 @@
+class Solution {
+public:
+    using ll = long long;
+
+    ll prefixSum(ll n) {
+        if (n <= 0) return 0;
+        ll sum = 0;
+        ll p = 1;  // 4^k
+        int steps = 1;
+        while (p <= n) {
+            ll nextP = p * 4;
+            ll right = min(n, nextP - 1);
+            ll count = right - p + 1;
+            sum += count * steps;
+            p = nextP;
+            steps++;
+        }
+        return sum;
+    }
+
+    long long minOperations(vector<vector<int>>& queries) {
+        ll total = 0;
+        for (auto &q : queries) {
+            ll l = q[0], r = q[1];
+            ll sumSteps = prefixSum(r) - prefixSum(l - 1);
+            total += (sumSteps + 1) / 2;  // ceil(sumSteps / 2)
+        }
+        return total;
+    }
+};
