@@ -1,0 +1,20 @@
+class Solution:
+    def sortVowels(self, s: str) -> str:
+        vowels = set("aeiouAEIOU")
+        
+        # Extract vowels from the string
+        extracted = [ch for ch in s if ch in vowels]
+        # Sort vowels by ASCII
+        extracted.sort()
+        
+        # Replace vowels in original string with sorted ones
+        result = []
+        j = 0  # pointer for sorted vowels
+        for ch in s:
+            if ch in vowels:
+                result.append(extracted[j])
+                j += 1
+            else:
+                result.append(ch)
+        
+        return "".join(result)
