@@ -1,0 +1,36 @@
+from typing import List
+
+class Solution:
+    def spellchecker(self, wordlist: List[str], queries: List[str]) -> List[str]:
+        # Rule 1: exact match set
+        words = set(wordlist)
+        
+        # Rule 2: case-insensitive map
+        lower_map = {}
+        for w in wordlist:
+            lw = w.lower()
+            if lw not in lower_map:   # keep first occurrence
+                lower_map[lw] = w
+        
+        # Rule 3: vowel-error insensitive map
+        def devowel(word: str) -> str:
+            return ''.join('*' if ch in "aeiou" else ch for ch in word.lower())
+        
+        vowel_map = {}
+        for w in wordlist:
+            vw = devowel(w)
+            if vw not in vowel_map:   # keep first occurrence
+                vowel_map[vw] = w
+        
+        ans = []
+        for q in queries:
+            if q in words:   # Rule 1
+                ans.append(q)
+            elif q.lower() in lower_map:  # Rule 2
+                ans.append(lower_map[q.lower()])
+            elif devowel(q) in vowel_map: # Rule 3
+                ans.append(vowel_map[devowel(q)])
+            else:             # No match
+                ans.append("")
+        
+        return ans
