@@ -1,0 +1,34 @@
+import heapq
+
+class TaskManager:
+    def __init__(self, tasks):
+        # Heap stores (-priority, -taskId, userId)
+        self.heap = []
+        self.taskMap = {}  # taskId -> (userId, priority)
+        
+        for userId, taskId, priority in tasks:
+            self.add(userId, taskId, priority)
+
+    def add(self, userId, taskId, priority):
+        self.taskMap[taskId] = (userId, priority)
+        heapq.heappush(self.heap, (-priority, -taskId, userId, taskId))
+
+    def edit(self, taskId, newPriority):
+        userId, _ = self.taskMap[taskId]
+        self.taskMap[taskId] = (userId, newPriority)
+        heapq.heappush(self.heap, (-newPriority, -taskId, userId, taskId))
+
+    def rmv(self, taskId):
+        if taskId in self.taskMap:
+            del self.taskMap[taskId]
+
+    def execTop(self):
+        while self.heap:
+            priority, negTaskId, userId, taskId = heapq.heappop(self.heap)
+            if taskId in self.taskMap:
+                # Check if this entry is still valid
+                currentUser, currentPriority = self.taskMap[taskId]
+                if currentPriority == -priority:  
+                    del self.taskMap[taskId]
+                    return currentUser
+        return -1
