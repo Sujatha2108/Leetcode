@@ -1,0 +1,57 @@
+from collections import deque, defaultdict
+import bisect
+
+class Router:
+    def __init__(self, memoryLimit: int):
+        self.memoryLimit = memoryLimit
+        self.queue = deque()   # stores packets as (source, destination, timestamp)
+        self.seen = set()      # to detect duplicates
+        self.destMap = defaultdict(list)  # destination -> sorted list of timestamps
+
+    def addPacket(self, source: int, destination: int, timestamp: int) -> bool:
+        key = (source, destination, timestamp)
+
+        # Check for duplicate
+        if key in self.seen:
+            return False
+
+        # Evict oldest if exceeding memory limit
+        if len(self.queue) == self.memoryLimit:
+            old = self.queue.popleft()
+            self.seen.remove(old)
+            # remove old timestamp from destination list
+            lst = self.destMap[old[1]]
+            idx = bisect.bisect_left(lst, old[2])
+            if idx < len(lst) and lst[idx] == old[2]:
+                lst.pop(idx)
+
+        # Add new packet
+        self.queue.append(key)
+        self.seen.add(key)
+        bisect.insort(self.destMap[destination], timestamp)
+
+        return True
+
+    def forwardPacket(self) -> list[int]:
+        if not self.queue:
+            return []
+
+        pkt = self.queue.popleft()
+        self.seen.remove(pkt)
+
+        # remove timestamp from destination list
+        lst = self.destMap[pkt[1]]
+        idx = bisect.bisect_left(lst, pkt[2])
+        if idx < len(lst) and lst[idx] == pkt[2]:
+            lst.pop(idx)
+
+        return list(pkt)
+
+    def getCount(self, destination: int, startTime: int, endTime: int) -> int:
+        if destination not in self.destMap:
+            return 0
+
+        lst = self.destMap[destination]
+        left = bisect.bisect_left(lst, startTime)
+        right = bisect.bisect_right(lst, endTime)
+        return right - left
