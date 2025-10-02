@@ -1,0 +1,14 @@
+class Solution:
+    def maxBottlesDrunk(self, numBottles: int, numExchange: int) -> int:
+        # Total drunk bottles = initial full bottles
+        drunk = numBottles  
+        empty = numBottles  
+
+        while empty >= numExchange:
+            # Exchange empty bottles for one full bottle
+            empty -= numExchange
+            numExchange += 1  # Increase cost of exchange
+            drunk += 1        # Drank new bottle
+            empty += 1        # That bottle becomes empty again
+
+        return drunk
