@@ -1,0 +1,27 @@
+from bisect import bisect_right, insort
+from typing import List
+
+class Solution:
+    def avoidFlood(self, rains: List[int]) -> List[int]:
+        n = len(rains)
+        ans = [-1] * n
+        full_lakes = {}
+        dry_days = []
+
+        for i, lake in enumerate(rains):
+            if lake > 0:
+                if lake in full_lakes:
+                    # Find a dry day after last rain of this lake
+                    idx = bisect_right(dry_days, full_lakes[lake])
+                    if idx == len(dry_days):
+                        return []  # No available dry day -> flood
+                    dry_day = dry_days.pop(idx)
+                    ans[dry_day] = lake
+                full_lakes[lake] = i
+                ans[i] = -1
+            else:
+                # Add this index to dry_days (sorted)
+                insort(dry_days, i)
+                ans[i] = 1  # Default; may change later
+
+        return ans
