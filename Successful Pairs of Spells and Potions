@@ -1,0 +1,23 @@
+from bisect import bisect_left
+import math
+
+class Solution:
+    def successfulPairs(self, spells: List[int], potions: List[int], success: int) -> List[int]:
+        # Step 1: Sort potions for binary search
+        potions.sort()
+        m = len(potions)
+        res = []
+
+        # Step 2: For each spell, find the number of successful potions
+        for s in spells:
+            # Minimum potion strength needed for success
+            minPotion = math.ceil(success / s)
+            
+            # Step 3: Binary search for the first potion >= minPotion
+            idx = bisect_left(potions, minPotion)
+            
+            # Step 4: Count how many potions are strong enough
+            count = m - idx
+            res.append(count)
+        
+        return res
