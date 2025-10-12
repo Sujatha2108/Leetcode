@@ -1,0 +1,97 @@
+import java.util.*;
+
+public class Solution {
+    static final long MOD = 1_000_000_007L;
+
+    public int magicalSum(int m, int k, int[] nums) {
+        int n = nums.length;
+        // L: number of bit-positions to process (allow for carries above highest index).
+        int L = n + 31; // m <= 30 so 31 extra positions is safe.
+
+        // Precompute factorials and inverse factorials up to m.
+        long[] fact = new long[m + 1];
+        long[] invFact = new long[m + 1];
+        fact[0] = 1;
+        for (int i = 1; i <= m; ++i) fact[i] = fact[i - 1] * i % MOD;
+        invFact[m] = modInverse(fact[m]);
+        for (int i = m - 1; i >= 0; --i) invFact[i] = invFact[i + 1] * (i + 1) % MOD;
+
+        // Precompute pow[j][c] = nums[j]^c % MOD and powDivFact[j][c] = pow / c! (i.e. pow * invFact[c])
+        long[][] powDivFact = new long[n][m + 1];
+        for (int j = 0; j < n; ++j) {
+            long[] pow = new long[m + 1];
+            pow[0] = 1;
+            for (int c = 1; c <= m; ++c) pow[c] = pow[c - 1] * (nums[j] % MOD) % MOD;
+            for (int c = 0; c <= m; ++c) powDivFact[j][c] = pow[c] * invFact[c] % MOD;
+        }
+
+        // DP arrays: dp[carry][usedPicks][setBits] = value
+        // We'll roll per position j.
+        int maxCarry = m; // carry never exceeds m
+        long[][][] dp = new long[maxCarry + 1][m + 1][m + 1];
+        dp[0][0][0] = 1;
+
+        for (int j = 0; j < L; ++j) {
+            long[][][] next = new long[maxCarry + 1][m + 1][m + 1];
+            boolean isValidIndex = (j < n);
+            for (int carry = 0; carry <= maxCarry; ++carry) {
+                for (int used = 0; used <= m; ++used) {
+                    for (int bits = 0; bits <= m; ++bits) {
+                        long cur = dp[carry][used][bits];
+                        if (cur == 0) continue;
+                        // choose c count for index j
+                        int maxC = m - used;
+                        if (!isValidIndex) {
+                            // For j >= n, no original index exists -> c must be 0
+                            int c = 0;
+                            int total = carry + c;
+                            int bit = total & 1;
+                            int carryOut = total >>> 1;
+                            if (carryOut > maxCarry) continue;
+                            int used2 = used + c;
+                            int bits2 = bits + bit;
+                            if (bits2 <= m)
+                                next[carryOut][used2][bits2] = (next[carryOut][used2][bits2] + cur) % MOD;
+                        } else {
+                            for (int c = 0; c <= maxC; ++c) {
+                                int total = carry + c;
+                                int bit = total & 1;
+                                int carryOut = total >>> 1;
+                                if (carryOut > maxCarry) continue;
+                                int used2 = used + c;
+                                int bits2 = bits + bit;
+                                if (bits2 > m) continue;
+                                long mul = powDivFact[j][c]; // nums[j]^c / c! mod
+                                long add = cur * mul % MOD;
+                                next[carryOut][used2][bits2] = (next[carryOut][used2][bits2] + add) % MOD;
+                            }
+                        }
+                    }
+                }
+            }
+            dp = next;
+        }
+
+        // After processing all positions, we must have carry==0 and used==m and bits==k
+        long sum = dp[0][m][k];
+        // Multiply by m! to account for ordering (multinomial factor m! / prod c_j! was included via invFact)
+        long ans = sum * fact[m] % MOD;
+        return (int) ans;
+    }
+
+    // modular inverse via Fermat (MOD is prime)
+    private long modInverse(long x) {
+        return modPow(x, MOD - 2);
+    }
+
+    private long modPow(long a, long e) {
+        long r = 1 % MOD;
+        a %= MOD;
+        while (e > 0) {
+            if ((e & 1) == 1) r = (r * a) % MOD;
+            a = (a * a) % MOD;
+            e >>= 1;
+        }
+        return r;
+    }
+}
