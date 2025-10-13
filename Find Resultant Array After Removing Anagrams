@@ -1,0 +1,28 @@
+import java.util.*;
+
+class Solution {
+    public List<String> removeAnagrams(String[] words) {
+        List<String> res = new ArrayList<>();
+        if (words == null || words.length == 0) return res;
+
+        // helper to get canonical form (sorted letters)
+        String prevCanon = canonical(words[0]);
+        res.add(words[0]);
+
+        for (int i = 1; i < words.length; i++) {
+            String curCanon = canonical(words[i]);
+            if (!curCanon.equals(prevCanon)) {
+                res.add(words[i]);
+                prevCanon = curCanon;
+            }
+            // else skip words[i] because it's an anagram of previous kept word
+        }
+        return res;
+    }
+
+    private String canonical(String s) {
+        char[] arr = s.toCharArray();
+        Arrays.sort(arr);
+        return new String(arr);
+    }
+}
