@@ -1,0 +1,38 @@
+class Solution {
+    public boolean hasIncreasingSubarrays(List<Integer> nums, int k) {
+        int n = nums.size();
+        // If two adjacent subarrays of length k can't fit, return false.
+        if (2 * k > n) return false;
+
+        // inc[i] = 1 if nums[i] < nums[i+1], else 0
+        int[] inc = new int[n - 1];
+        for (int i = 0; i < n - 1; i++) {
+            inc[i] = nums.get(i) < nums.get(i + 1) ? 1 : 0;
+        }
+
+        // A subarray of length k is strictly increasing iff the k-1 adjacent comparisons are all 1.
+        // We'll compute a sliding window sum of size (k-1) over inc[] to mark starts.
+        boolean[] startIsIncreasing = new boolean[n]; // only indices 0..n-k will be used
+
+        int windowSum = 0;
+        int need = k - 1;
+        // initial window for start = 0
+        for (int i = 0; i < need; i++) windowSum += inc[i];
+        if (windowSum == need) startIsIncreasing[0] = true;
+
+        for (int start = 1; start <= n - k; start++) {
+            // window covers inc[start .. start+need-1]
+            windowSum += inc[start + need - 1];
+            windowSum -= inc[start - 1];
+            startIsIncreasing[start] = (windowSum == need);
+        }
+
+        // Check for two adjacent starts: a and a+k
+        // valid a range: 0 .. n - 2*k
+        for (int a = 0; a <= n - 2 * k; a++) {
+            if (startIsIncreasing[a] && startIsIncreasing[a + k]) return true;
+        }
+
+        return false;
+    }
+}
