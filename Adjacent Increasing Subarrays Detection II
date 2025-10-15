@@ -1,0 +1,36 @@
+class Solution {
+    public int maxIncreasingSubarrays(List<Integer> nums) {
+        int n = nums.size();
+        if (n < 2) return 0;
+
+        // inc[i] = length of strictly increasing run starting at i
+        int[] inc = new int[n];
+        inc[n - 1] = 1;
+        for (int i = n - 2; i >= 0; --i) {
+            if (nums.get(i) < nums.get(i + 1)) inc[i] = inc[i + 1] + 1;
+            else inc[i] = 1;
+        }
+
+        int lo = 1, hi = n / 2, ans = 0;
+        while (lo <= hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (existsAdjacentOfLength(mid, inc, n)) {
+                ans = mid;        // mid works, try larger
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;     // mid doesn't work, try smaller
+            }
+        }
+        return ans;
+    }
+
+    private boolean existsAdjacentOfLength(int k, int[] inc, int n) {
+        // a can range 0..n-2k
+        int lastA = n - 2 * k;
+        if (lastA < 0) return false;
+        for (int a = 0; a <= lastA; ++a) {
+            if (inc[a] >= k && inc[a + k] >= k) return true;
+        }
+        return false;
+    }
+}
