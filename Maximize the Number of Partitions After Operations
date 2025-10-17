@@ -1,0 +1,38 @@
+class Solution {
+    public int maxPartitionsAfterOperations(String s, int k) {
+        Map<Long, Integer> memo = new HashMap<>();
+        return dp(s, 0, true, 0, k, memo) + 1;
+    }
+
+    // dp(i, canChange, mask) = max additional partitions for s[i..]
+    private int dp(final String s, int i, boolean canChange, int mask, int k, Map<Long, Integer> memo) {
+        if (i == s.length()) return 0;
+        long key = ((long)i << 27) | ( (canChange ? 1L : 0L) << 26 ) | (mask & ((1<<26)-1));
+        if (memo.containsKey(key)) return memo.get(key);
+
+        // helper to try a letter (represented by newBit). If adding it causes more than k distinct,
+        // we must cut here: count 1 + dp for remainder starting with newBit as mask.
+        java.util.function.BiFunction<Integer, Boolean, Integer> tryLetter = (newBit, nextCanChange) -> {
+            int newMask = mask | newBit;
+            if (Integer.bitCount(newMask) > k) {
+                // partition here, next segment starts with newBit as the only letter
+                return 1 + dp(s, i + 1, nextCanChange, newBit, k, memo);
+            } else {
+                // continue current segment
+                return dp(s, i + 1, nextCanChange, newMask, k, memo);
+            }
+        };
+
+        int res = tryLetter.apply(1 << (s.charAt(i) - 'a'), canChange);
+
+        if (canChange) {
+            // try changing current char to any of 26 letters
+            for (int j = 0; j < 26; ++j) {
+                res = Math.max(res, tryLetter.apply(1 << j, false));
+            }
+        }
+
+        memo.put(key, res);
+        return res;
+    }
+}
