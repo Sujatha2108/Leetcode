@@ -1,0 +1,35 @@
+import java.util.*;
+
+class Solution {
+    public int maxDistinctElements(int[] nums, int k) {
+        int n = nums.length;
+        long K = k; // use long to avoid overflow
+        long[][] intervals = new long[n][2];
+        for (int i = 0; i < n; ++i) {
+            intervals[i][0] = (long)nums[i] - K;
+            intervals[i][1] = (long)nums[i] + K;
+        }
+        Arrays.sort(intervals, Comparator.comparingLong(a -> a[1])); // sort by right endpoint
+        
+        long cur = Long.MIN_VALUE / 4; // last assigned integer
+        int count = 0;
+        for (int i = 0; i < n; ++i) {
+            long left = intervals[i][0];
+            long right = intervals[i][1];
+            long assign = Math.max(cur + 1, left);
+            if (assign <= right) {
+                count++;
+                cur = assign;
+            }
+        }
+        return count;
+    }
+
+    // Optional simple test
+    public static void main(String[] args) {
+        Solution s = new Solution();
+        System.out.println(s.maxDistinctElements(new int[]{1,2,2,3,3,4}, 2)); // 6
+        System.out.println(s.maxDistinctElements(new int[]{4,4,4,4}, 1));     // 3
+        System.out.println(s.maxDistinctElements(new int[]{1,1,1}, 0));       // 1
+    }
+}
