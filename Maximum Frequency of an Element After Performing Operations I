@@ -1,0 +1,48 @@
+class Solution {
+    public int maxFrequency(int[] nums, int k, int numOperations) {
+        int n = nums.length;
+        if (n == 0) return 0;
+
+        // Find global interval bounds
+        int minL = Integer.MAX_VALUE;
+        int maxR = Integer.MIN_VALUE;
+        for (int a : nums) {
+            int L = a - k;
+            int R = a + k;
+            if (L < minL) minL = L;
+            if (R > maxR) maxR = R;
+        }
+
+        // Shift so indices are non-negative
+        int offset = -minL;
+        int size = (maxR - minL) + 3; // +3 to safely handle R+1 access
+
+        int[] diff = new int[size];
+        int[] eq = new int[size]; // counts of nums[i] exactly equal to v (shifted)
+
+        // Build difference array for intervals and exact counts
+        for (int a : nums) {
+            int L = a - k + offset;
+            int R = a + k + offset;
+            diff[L] += 1;
+            diff[R + 1] -= 1;
+
+            // exact-value count
+            eq[a + offset] += 1;
+        }
+
+        // Sweep to get total_v for each shifted v and compute best answer
+        int maxFreq = 0;
+        int running = 0;
+        for (int i = 0; i < size - 1; ++i) { // size-1 is enough; last slot was safety
+            running += diff[i];
+            // running == total_v for value (i - offset)
+            int total_v = running;
+            int eq_v = eq[i];
+            int achievable = Math.min(total_v, eq_v + numOperations);
+            if (achievable > maxFreq) maxFreq = achievable;
+        }
+
+        return maxFreq;
+    }
+}
