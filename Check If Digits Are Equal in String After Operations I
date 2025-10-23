@@ -1,0 +1,14 @@
+class Solution:
+    def hasSameDigits(self, s: str) -> bool:
+        # Continue until the string has only two digits
+        while len(s) > 2:
+            new_s = []
+            for i in range(len(s) - 1):
+                # Sum of consecutive digits modulo 10
+                new_digit = (int(s[i]) + int(s[i + 1])) % 10
+                new_s.append(str(new_digit))
+            # Update s with the new sequence
+            s = ''.join(new_s)
+        
+        # Return True if both digits are equal, else False
+        return s[0] == s[1]
