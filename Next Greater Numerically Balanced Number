@@ -1,0 +1,20 @@
+from collections import Counter
+
+class Solution:
+    def nextBeautifulNumber(self, n: int) -> int:
+        x = n + 1
+        while True:
+            s = str(x)
+            # '0' cannot appear (0 occurrences would be required)
+            if '0' in s:
+                x += 1
+                continue
+            cnt = Counter(s)
+            valid = True
+            for digit_char, c in cnt.items():
+                if c != int(digit_char):
+                    valid = False
+                    break
+            if valid:
+                return x
+            x += 1
