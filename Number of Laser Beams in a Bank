@@ -1,0 +1,18 @@
+from typing import List
+
+class Solution:
+    def numberOfBeams(self, bank: List[str]) -> int:
+        prev_count = 0
+        total_beams = 0
+        for row in bank:
+            cnt = row.count('1')
+            if cnt:
+                total_beams += prev_count * cnt
+                prev_count = cnt
+        return total_beams
+
+# Example tests
+if __name__ == "__main__":
+    sol = Solution()
+    print(sol.numberOfBeams(["011001","000000","010100","001000"]))  # 8
+    print(sol.numberOfBeams(["000","111","000"]))                    # 0
