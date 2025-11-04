@@ -1,0 +1,18 @@
+from typing import List
+from collections import Counter
+
+class Solution:
+    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:
+        n = len(nums)
+        res = []
+        for i in range(0, n - k + 1):
+            window = nums[i:i+k]
+            cnt = Counter(window)
+            # sort by frequency descending, then value descending (tie-breaker)
+            items = sorted(cnt.items(), key=lambda iv: (-iv[1], -iv[0]))
+            # pick top x distinct elements (or all if fewer)
+            top = items[:x]
+            # sum occurrences * value for chosen elements
+            s = sum(freq * val for val, freq in top)
+            res.append(s)
+        return res
