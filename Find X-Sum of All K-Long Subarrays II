@@ -1,0 +1,169 @@
+from typing import List
+import heapq
+from collections import defaultdict
+
+class Solution:
+    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:
+        # current counts of values in the window
+        cur = defaultdict(int)
+
+        # Heaps with lazy deletion:
+        # inTop_heap: min-heap of (count, value) for elements currently considered in top-x.
+        # outTop_heap: max-heap stored as (-count, -value, value) for others.
+        inTop_heap = []    # entries: (count, value)
+        outTop_heap = []   # entries: (-count, -value, value)
+
+        inTop_set = set()  # values currently logically in top-x
+        distinct = 0       # number of distinct values in current window
+        inTop_sum = 0      # sum(value * count) for values in inTop_set
+
+        def push_out(v):
+            # push current state of v to outTop heap
+            c = cur[v]
+            heapq.heappush(outTop_heap, (-c, -v, v))
+
+        def push_in(v):
+            # push current state of v to inTop heap
+            c = cur[v]
+            heapq.heappush(inTop_heap, (c, v))
+
+        def pop_valid_out():
+            # return best candidate from outTop (count,value) or None
+            while outTop_heap:
+                negc, negv, v = outTop_heap[0]
+                c = -negc
+                if cur[v] != c or v in inTop_set:
+                    heapq.heappop(outTop_heap)  # stale or already in inTop
+                    continue
+                return (c, v)
+            return None
+
+        def pop_valid_in_worst():
+            # return worst candidate from inTop (count,value) or None
+            while inTop_heap:
+                c, v = inTop_heap[0]
+                if cur[v] != c or v not in inTop_set:
+                    heapq.heappop(inTop_heap)  # stale or membership changed
+                    continue
+                return (c, v)
+            return None
+
+        # initialize counts for first window
+        for i in range(k):
+            v = nums[i]
+            if cur[v] == 0:
+                distinct += 1
+            cur[v] += 1
+
+        # push all distinct values into outTop initially
+        for v in cur:
+            push_out(v)
+
+        # promote top x (or all if distinct < x) from outTop to inTop
+        target_in = min(x, distinct)
+        for _ in range(target_in):
+            best = pop_valid_out()
+            if not best:
+                break
+            c, v = best
+            heapq.heappop(outTop_heap)
+            inTop_set.add(v)
+            push_in(v)
+            inTop_sum += c * v
+
+        res = []
+        # compute answer for first window
+        res.append(inTop_sum)
+
+        # slide the window
+        n = len(nums)
+        for i in range(k, n):
+            outv = nums[i - k]
+            inv = nums[i]
+
+            # --- remove outgoing value ---
+            # adjust inTop_sum if outgoing value is currently inTop
+            if cur[outv] > 0:
+                if outv in inTop_set:
+                    inTop_sum -= outv  # count will reduce by 1
+                cur[outv] -= 1
+                if cur[outv] == 0:
+                    distinct -= 1
+                    # remove membership if it was in inTop_set
+                    if outv in inTop_set:
+                        inTop_set.remove(outv)
+                        # stale entries will be cleared lazily
+                # push updated state to appropriate heap
+                if outv in inTop_set:
+                    push_in(outv)
+                else:
+                    push_out(outv)
+
+            # --- add incoming value ---
+            was_distinct = (cur[inv] == 0)
+            if inv in inTop_set:
+                # if inv is currently in top, adding one increases inTop_sum
+                inTop_sum += inv
+            cur[inv] += 1
+            if was_distinct:
+                distinct += 1
+            # push updated state
+            if inv in inTop_set:
+                push_in(inv)
+            else:
+                push_out(inv)
+
+            # --- rebalance sizes: ensure inTop_set size == min(x, distinct) ---
+            desired_in_size = min(x, distinct)
+            # promote until size matches desired
+            while len(inTop_set) < desired_in_size:
+                cand = pop_valid_out()
+                if not cand:
+                    break
+                c, v = cand
+                heapq.heappop(outTop_heap)
+                inTop_set.add(v)
+                push_in(v)
+                inTop_sum += c * v
+
+            # demote if too large
+            while len(inTop_set) > desired_in_size:
+                worst = pop_valid_in_worst()
+                if not worst:
+                    break
+                c, v = worst
+                heapq.heappop(inTop_heap)
+                inTop_set.remove(v)
+                push_out(v)
+                inTop_sum -= c * v
+
+            # --- ensure ordering invariant: best of outTop <= worst of inTop ---
+            # If best(outTop) > worst(inTop) then swap them
+            while True:
+                best_out = pop_valid_out()
+                worst_in = pop_valid_in_worst()
+                if not best_out or not worst_in:
+                    break
+                c_out, v_out = best_out
+                c_in, v_in = worst_in
+                # if out candidate is strictly better than worst in top, swap
+                if (c_out, v_out) > (c_in, v_in):
+                    # perform swap
+                    heapq.heappop(outTop_heap)
+                    heapq.heappop(inTop_heap)
+                    # update sets
+                    inTop_set.remove(v_in)
+                    inTop_set.add(v_out)
+                    # push updated states into heaps
+                    push_out(v_in)
+                    push_in(v_out)
+                    # update inTop_sum: remove old, add new (use current counts)
+                    inTop_sum -= cur[v_in] * v_in
+                    inTop_sum += cur[v_out] * v_out
+                else:
+                    break
+
+            # append result for current window
+            res.append(inTop_sum)
+
+        return res
