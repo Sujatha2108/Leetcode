@@ -1,0 +1,50 @@
+from typing import List
+import heapq
+from collections import defaultdict
+
+class Solution:
+    def processQueries(self, c: int, connections: List[List[int]], queries: List[List[int]]) -> List[int]:
+        # DSU
+        parent = list(range(c+1))
+        rank = [0]*(c+1)
+        def find(x):
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+        def union(a,b):
+            ra, rb = find(a), find(b)
+            if ra == rb: return
+            if rank[ra] < rank[rb]:
+                parent[ra] = rb
+            else:
+                parent[rb] = ra
+                if rank[ra] == rank[rb]:
+                    rank[ra] += 1
+
+        for u,v in connections:
+            union(u,v)
+
+        # build heap of nodes per component (min id)
+        comp_heap = defaultdict(list)
+        for i in range(1, c+1):
+            comp_heap[find(i)].append(i)
+        for root in comp_heap:
+            heapq.heapify(comp_heap[root])
+
+        online = [True]*(c+1)
+        ans = []
+        for typ, x in queries:
+            if typ == 2:
+                online[x] = False
+            else:  # typ == 1
+                if online[x]:
+                    ans.append(x)
+                else:
+                    root = find(x)
+                    h = comp_heap[root]
+                    # lazy remove offline nodes
+                    while h and not online[h[0]]:
+                        heapq.heappop(h)
+                    ans.append(h[0] if h else -1)
+        return ans
