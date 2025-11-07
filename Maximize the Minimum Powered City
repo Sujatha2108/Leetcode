@@ -1,0 +1,53 @@
+from typing import List
+
+class Solution:
+    def maxPower(self, stations: List[int], r: int, k: int) -> int:
+        n = len(stations)
+        # prefix sums to compute initial power of each city quickly
+        pref = [0] * (n + 1)
+        for i in range(n):
+            pref[i+1] = pref[i] + stations[i]
+
+        power = [0] * n
+        for i in range(n):
+            L = max(0, i - r)
+            R = min(n - 1, i + r)
+            power[i] = pref[R+1] - pref[L]
+
+        # binary search on answer
+        lo, hi = 0, pref[-1] + k  # upper bound: all existing + all new stations
+
+        def can_achieve(target: int) -> bool:
+            # difference-array technique to simulate placing stations greedily
+            diff = [0] * (n + 1)  # extra length to avoid bounds checks
+            added_effect = 0
+            used = 0
+            window_end_offset = 2 * r + 1
+
+            for i in range(n):
+                added_effect += diff[i]
+                cur = power[i] + added_effect
+                if cur < target:
+                    need = target - cur
+                    used += need
+                    if used > k:
+                        return False
+                    added_effect += need
+                    end_idx = i + window_end_offset
+                    if end_idx < n:
+                        diff[end_idx] -= need
+            return True
+
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if can_achieve(mid):
+                lo = mid
+            else:
+                hi = mid - 1
+        return lo
+
+# Example quick test
+if __name__ == '__main__':
+    s = Solution()
+    print(s.maxPower([1,2,4,5,0], 1, 2))  # expected 5
+    print(s.maxPower([4,4,4,4], 0, 3))    # expected 4
