@@ -1,0 +1,10 @@
+class Solution:
+    def minimumOneBitOperations(self, n: int) -> int:
+        # recursive relation:
+        # let h = highest power of two <= n (h = 1 << (n.bit_length()-1))
+        # then f(0) = 0 and for n > 0:
+        # f(n) = (2*h - 1) - f(n - h)
+        if n == 0:
+            return 0
+        h = 1 << (n.bit_length() - 1)
+        return (2 * h - 1) - self.minimumOneBitOperations(n - h)
