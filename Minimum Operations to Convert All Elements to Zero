@@ -1,0 +1,18 @@
+from typing import List
+
+class Solution:
+    def minOperations(self, nums: List[int]) -> int:
+        ops = 0
+        stack: List[int] = []
+        for x in nums:
+            # remove values greater than current x
+            while stack and stack[-1] > x:
+                stack.pop()
+            # if current is positive and a new value (strictly greater than top),
+            # it requires a new operation
+            if x > 0 and (not stack or stack[-1] < x):
+                stack.append(x)
+                ops += 1
+            # if x == stack[-1] (equal), do nothing (already counted)
+            # if x == 0, we simply ensure stack has been reduced above
+        return ops
