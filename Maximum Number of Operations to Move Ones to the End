@@ -1,0 +1,20 @@
+class Solution:
+    def maxOperations(self, s: str) -> int:
+        ans = 0
+        ones = 0
+        n = len(s)
+
+        for i, ch in enumerate(s):
+            if ch == '1':
+                ones += 1
+            else:  # ch == '0'
+                # if this zero is the last char or is directly before a '1'
+                if i + 1 == n or s[i + 1] == '1':
+                    ans += ones
+
+        return ans
+
+# quick checks
+sol = Solution()
+print(sol.maxOperations("1001101"))  # 4 (matches example)
+print(sol.maxOperations("00111"))    # 0 (matches example)
