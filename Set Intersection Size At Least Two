@@ -1,0 +1,26 @@
+class Solution:
+    def intersectionSizeTwo(self, intervals: List[List[int]]) -> int:
+        # Sort by end increasing, start decreasing
+        intervals.sort(key=lambda x: (x[1], -x[0]))
+        
+        # a, b = the last two selected numbers
+        a, b = -1, -1
+        count = 0
+        
+        for s, e in intervals:
+            # Case 1: both a and b fall inside interval → do nothing
+            if s <= a and s <= b:
+                continue
+            
+            # Case 2: only b is inside -> add one new number
+            if s <= b:
+                a = b
+                b = e
+                count += 1
+            else:
+                # Case 3: none are inside -> add e-1 and e
+                a = e - 1
+                b = e
+                count += 2
+        
+        return count
